@@ -1,0 +1,11 @@
+^[ \t]*ITEM:[ \t]*(?P<item>.+?)
+^[ \t]*Start-Time:[ \t]+(?P<starttime>.+?)
+^[ \t]*{{{[ \t]*
+^(?P<main>(.*?\n)+?)\n??^[ \t]*Evaluation:[ \t]*(?P<evaltime>.+?)
+(?P<evaluation>(.*?\n??)*?)\n??^[ \t]*DeltaPrevious:[ \t]*(?P<previous>.+?)
+^[ \t]*TimeQuality:[ \t]*(?P<quality>.+?)
+^[ \t]*Qindex:[ \t]*(?P<index>.+?)
+^[ \t]*Time-Done:[ \t]*(?P<done>.+?)
+^[ \t]*}}}[ \t]*
+^[ \t]*Block-Elapsed:[ \t]*(?P<elapsed>.+?)$
+
