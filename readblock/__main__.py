@@ -17,14 +17,21 @@ import logging
 #import reader_tasklogTaskBlocks.readblock as readblock
 import importlib
 import importlib.resources
+import pprint
+import glob
 from .readblock import ReadBlock
 #   {{{2
+__version__ = "0.0.0"
 
 #   Usage:
 #>%     python run-taskblock-reader.py --infile /Users/mldavis/Dropbox/_TaskLogs/_worklog/2020-12.worklog.vimgpg
 #   Only works with tasklogs new enough to use the format of that given in the file,
 #   crashes on older files (those with no matches at all?)
 
+_logging_format="%(funcName)s:%(levelname)s: %(message)s"
+_logging_datetime="%Y-%m-%dT%H:%M:%S%Z"
+_log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format=_logging_format, datefmt=_logging_datetime)
 
 #path_home = os.path.expanduser("~")
 #path_templates_dir = os.path.join(path_home, "_templates")
@@ -33,26 +40,58 @@ from .readblock import ReadBlock
 path_regex_str= None
 with importlib.resources.path("readblock", "regexfile-taskblock.txt") as p:
     path_regex_str = str(p)
-
-
-_logging_format="%(funcName)s:%(levelname)s: %(message)s"
-_logging_datetime="%Y-%m-%dT%H:%M:%S%Z"
-_log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG, format=_logging_format, datefmt=_logging_datetime)
+    _log.debug("path_regex_str=(%s)" % str(path_regex_str))
 
 #   Include default values in help
-parser = argparse.ArgumentParser(description="Read line(s) in file beginning with specified labels in groups", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+_parser = argparse.ArgumentParser(description="Read line(s) in file beginning with specified labels in groups", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+_subparser = _parser.add_subparsers(dest="subparsers")
+
+def _DirPath(string):
+    if os.path.isdir(string):
+        return string
+    else:
+        raise NotADirectoryError(string)
+
+def _GetFilesList_Monthly(arg_dir, arg_prefix, arg_postfix, arg_extension):
+    regex_str_monthly = "[0-9][0-9][0-9][0-9]-[0-9][0-9]"
+    glob_filename_str = ""
+    if (arg_prefix is not None):
+        glob_filename_str += arg_prefix
+    glob_filename_str += regex_str_monthly + "[-\._]"
+    if (arg_postfix is not None):
+        glob_filename_str += arg_postfix
+    if (arg_extension is not None):
+        glob_filename_str += "." + arg_extension
+    _log.debug("arg_dir=(%s)" % str(arg_dir))
+    _log.debug("glob_filename_str=(%s)" % str(glob_filename_str))
+    glob_filepath_str = os.path.join(arg_dir, glob_filename_str)
+    #_log.debug("glob_filepath_str=(%s)" % str(glob_filepath_str))
+    results_list = glob.glob(glob_filepath_str)
+    results_list.sort()
+    _log.debug("results_list:\n%s" % pprint.pformat(results_list))
+    return results_list
+
 
 #   TODO: 2020-11-08T12:21:37AEDT Read regex from file - treatment of characters?
-
 #   TODO: 2020-12-10T23:06:34AEDT option - get files matching mattern?
-parser.add_argument('--version', action='version', version="0.0.1")
-parser.add_argument('-i', '--infile', nargs='?', help="Input to search", type=argparse.FileType('r'))
+_parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
+_parser.add_argument('-v', '--debug', action='store_true', default=False)
 
-#parser.add_argument('-d', '--indir', nargs='?', help="Input directory of files", type=str)
-#parser.add_argument('--name', nargs='?', type=str, default="worklog", help="Name of tasklog")
-#parser.add_argument('-G', '--gpgin', action='store_true', help="Decrypt gpg input")
-#parser.add_argument('-R', '--regfile', nargs='?', help="Specify file containing regex match-group(s)", type=argparse.FileType('r'), default=path_regex_str)
+#   dir, prefix, postfix -> get files in dir of the form '[prefix][yyyy]-[mm][postfix]
+_parser.add_argument('-D', '--dir', type=_DirPath, help="Path to dir containing tasklogs")
+_parser.add_argument('--prefix', type=str, default=None, help="Tasklog filename before Y-m")
+_parser.add_argument('--postfix', '-P', type=str, default=None, help="Tasklog filename after Y-m")
+_parser.add_argument('--extension', type=str, default="vimgpg", help="Tasklog filename extension")
+
+_subparser_readlabels = _subparser.add_parser('labels')
+
+
+#_parser.add_argument('-i', '--infile', nargs='?', help="Input to search", type=argparse.FileType('r'))
+#_parser.add_argument('-d', '--indir', nargs='?', help="Input directory of files", type=str)
+#_parser.add_argument('--name', nargs='?', type=str, default="worklog", help="Name of tasklog")
+#_parser.add_argument('-G', '--gpgin', action='store_true', help="Decrypt gpg input")
+#_parser.add_argument('-R', '--regfile', nargs='?', help="Specify file containing regex match-group(s)", type=argparse.FileType('r'), default=path_regex_str)
+
 
 readblock = ReadBlock()
 gpgin = True
@@ -63,13 +102,26 @@ def cliscan():
             regex_str = f.read()
     except Exception as e:
         _log.error("%s, %s" % (type(e), str(e)))
+
     regex_search = re.compile(regex_str, re.MULTILINE)
-    args = parser.parse_args()
-    _log.debug("args=(%s)" % str(args))
+    _args = _parser.parse_args()
+    readblock._printdebug = _args.debug
+    #_log.debug("args=(%s)" % str(_args))
+
+    tasklogs_list = _GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix, _args.extension)
+
+    #print(type(_args.subparsers))
     
-    if (args.infile):
-        stream_shuffeled = readblock._TextIOShuffle(args.infile, gpgin)
-        readblock.ScanStreamRegex(stream_shuffeled, regex_search)
+    if (_args.subparsers == 'labels'):
+        for loop_tasklog in tasklogs_list:
+            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog, gpgin)
+            #_log.debug("loop_tasklog_stream=(%s)" % str(loop_tasklog_stream))
+            #readblock.ScanStreamRegex(loop_tasklog_stream, regex_search)
+
+    #if (args.infile):
+    #    stream_shuffeled = readblock._TextIOShuffle(args.infile, gpgin)
+    #    readblock.ScanStreamRegex(stream_shuffeled, regex_search)
+    #    sys.exit(0)
 
     #if (args.indir):
     #    tasklog_list = readblock.GetAllTasklogsInDir(args.indir, args.name)
@@ -77,7 +129,7 @@ def cliscan():
     #        with open(loop_tasklog, "r") as f:
     #            stream_shuffeled = readblock._TextIOShuffle(f, gpgin)
     #            readblock.ScanStreamRegex(stream_shuffeled, regex_search)
-            
+
         #_log.debug("tasklog_list=(%s)" % str(tasklog_list))
 
 

@@ -28,7 +28,6 @@ import glob
 flag_exit_on_empty_stdin = True
 flag_exit_on_tty_input = True
 
-self_printdebug = True
 
 _logging_format="%(funcName)s:%(levelname)s: %(message)s"
 _logging_datetime="%Y-%m-%dT%H:%M:%S%Z"
@@ -36,6 +35,7 @@ _log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format=_logging_format, datefmt=_logging_datetime)
 
 class ReadBlock(object):
+    _printdebug = False
 
     #   {{{
     #   About: Take a filepath as a string, decrypt said file using the system gpg keychain, and return the contents as a string
@@ -46,9 +46,7 @@ class ReadBlock(object):
     #   }}}
     def _ReadGPGFile_ToString(self, file_path):
     #   {{{
-        global self_printdebug
         func_name = inspect.currentframe().f_code.co_name
-        func_printdebug = self_printdebug
         #   gpg deccrypt arguments
         cmd_gpg_decrypt = ["gpg", "-q", "--decrypt", file_path]
         p = Popen(cmd_gpg_decrypt, stdout=PIPE, stdin=PIPE, stderr=PIPE)
@@ -57,13 +55,13 @@ class ReadBlock(object):
         result_stderr = result_stderr.decode()
         #   printdebug:
         #   {{{
-        if (func_printdebug):
+        if (self._printdebug):
             _log.debug("result_strerr=(%s)" % (str(result_stderr)))
         #   }}}
         #   error/warning if empty:
         #   {{{
         result_str_len = len(result_str)
-        if (func_printdebug):
+        if (self._printdebug):
             _log.debug("result_str_len=(%s)" % str(result_str_len))
         if (result_str_len == 0) and (flag_exit_on_empty_gpgin == True):
             _log.error("gpg decrypt result_str empty")
@@ -83,8 +81,6 @@ class ReadBlock(object):
     #   }}}
     def _ReadGPGData_ToString(self, gpg_data):
     #   {{{
-        global self_printdebug
-        func_printdebug = self_printdebug
         func_name = inspect.currentframe().f_code.co_name
         #   convert gpg_data -> bytearray(cmd_encrypt_input)
         #   {{{
@@ -108,14 +104,14 @@ class ReadBlock(object):
         #   }}}
         #   printdebug:
         #   {{{
-        if (func_printdebug == 1):
+        if (self._printdebug == 1):
             _log.debug("result_strerr=(%s)" % str(result_stderr))
             _log.debug("result_strerr=(%s)" % str(result_str))
         #   }}}
         #   error/warning if empty:
         #   {{{
         result_str_len = len(result_str)
-        if (func_printdebug == 1):
+        if (self._printdebug == 1):
             _log.debug("result_str_len=(%s)" % str(result_str_len))
         if (result_str_len == 0) and (flag_exit_on_empty_gpgin == True):
             _log.error("gpg decrypt result_str empty")
@@ -135,55 +131,15 @@ class ReadBlock(object):
     #   History:
     #   Labeled: (2020-05-14)-(1720-40)
     #   }}}
-    def _TextIOShuffle(self, arg_infile, input_gpg=False):
+    def DecryptGPG2Stream(self, arg_infile, input_gpg=False):
     #   {{{
-        global self_printdebug
-        func_printdebug = self_printdebug
         input_text = "" 
-        stdin_str = ""
-        _log.debug("arg_infile=(%s)" % str(arg_infile))
-        if (input_gpg == False):
-        #   {{{
-        #   For non-gpg input, if the input is a file, we simply return arg_infile. If the input is from stdin, we read it, and return it as an io.StringIO object. If stdin is empty and flag_exit_on_empty_stdin is True, print error and exit. If we are dealing with gpg input, decrypt it to memory, and return an io.StringIO() object containing the text in question
-            if not (arg_infile.name == "<stdin>"):
-                return arg_infile
-            else:
-                for line_str in arg_infile:
-                    stdin_str += line_str
-                stdin_str = stdin_str.rstrip()
-                if (flag_exit_on_empty_stdin == True and len(stdin_str) == 0):
-                    _log.error("empty stdin, flag_exit_on_empty_stdin=(%s)" % str(flag_exit_on_empty_stdin))
-                    sys.exit(2)
-                return io.StringIO(stdin_str)
-        else:
-            input_path = arg_infile.name
-            input_text = ""
-            if (input_path != "<stdin>"):
-                if (func_printdebug):
-                    _log.debug("decrypt text from input_path=(%s)" % str(input_path))
-                input_text = self._ReadGPGFile_ToString(input_path)
-                return io.StringIO(input_text)
-            #   }}}
-            else:
-            #   {{{
-                #   Read stdin_str
-                stdin_str = ""
-                if (func_printdebug):
-                    _log.debug("arg_infile=(%s)" % str(arg_infile))
-                    _log.debug("arg_infile_type=(%s)" % str(type(arg_infile)))
-                try:
-                    #   
-                    stdin_buffer = arg_infile.buffer
-                    stdin_str = stdin_buffer.read()
-                except Exception as e:
-                    _log.warning("%s, %s" % (str(type(e)), str(e)))
-                #   Decrypt stdin_str 
-                if (func_printdebug):
-                    _log.debug("decrypt text=(%s) from stdin" % str(stdin_str))
-                input_text = self._ReadGPGData_ToString(stdin_str)
-                return io.StringIO(input_text)
+        if (self._printdebug):
+            _log.debug("arg_infile=(%s)" % str(arg_infile))
+        input_text = self._ReadGPGFile_ToString(arg_infile)
+        return io.StringIO(input_text)
         #   }}}
-    #   }}}
+#   }}}
 
     def GetAllTasklogsInDir(self, arg_dir, arg_name):
         tasklog_list = glob.glob(arg_dir  + "[0-9][0-9][0-9][0-9]-[0-9][0-9]." + arg_name + ".vimgpg" )
