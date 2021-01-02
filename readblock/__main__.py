@@ -67,7 +67,7 @@ def _GetFilesList_Monthly(arg_dir, arg_prefix, arg_postfix, arg_extension):
     glob_filepath_str = os.path.join(arg_dir, glob_filename_str)
     #_log.debug("glob_filepath_str=(%s)" % str(glob_filepath_str))
     results_list = glob.glob(glob_filepath_str)
-    results_list.sort()
+    results_list.sort(reverse=True)
     _log.debug("results_list:\n%s" % pprint.pformat(results_list))
     return results_list
 
@@ -94,7 +94,7 @@ _subparser_readlabels = _subparser.add_parser('labels')
 
 
 readblock = ReadBlock()
-gpgin = True
+input_gpgin = True
 
 def cliscan():
     try:
@@ -112,11 +112,18 @@ def cliscan():
 
     #print(type(_args.subparsers))
     
-    if (_args.subparsers == 'labels'):
-        for loop_tasklog in tasklogs_list:
-            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog, gpgin)
-            #_log.debug("loop_tasklog_stream=(%s)" % str(loop_tasklog_stream))
-            #readblock.ScanStreamRegex(loop_tasklog_stream, regex_search)
+    #   For each file found
+    for loop_tasklog in tasklogs_list:
+        #   Decrypt to stream, or open as stream (decrypted streams are stored in memory)
+        if (input_gpgin):
+            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog)
+        else:
+            loop_tasklog_stream = open(loop_tasklog, "r")
+
+        if (_args.subparsers == 'labels'):
+            _result = readblock.ScanStreamRegex(loop_tasklog_stream, regex_search)
+            print(_result)
+
 
     #if (args.infile):
     #    stream_shuffeled = readblock._TextIOShuffle(args.infile, gpgin)

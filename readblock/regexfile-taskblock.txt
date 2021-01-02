@@ -8,4 +8,3 @@
 ^[ \t]*Time-Done:[ \t]*(?P<done>.+?)
 ^[ \t]*}}}[ \t]*
 ^[ \t]*Block-Elapsed:[ \t]*(?P<elapsed>.+?)$
-
