@@ -9,7 +9,7 @@ from setuptools import setup
 
 version = re.search(
     '^__version__\s*=\s*"(.*)"',
-    open('dtscan/__main__.py').read(),
+    open('readblock/__main__.py').read(),
     re.M
     ).group(1)
 
@@ -50,7 +50,7 @@ setup(
     packages = ['readblock', 'tests'],
     tests_require=test_depend,
     entry_points={
-        'console_scripts': [ 'taskblock-reader = readblock.__main__:cliscan' ],
+        'console_scripts': [ 'readblock= readblock.__main__:cliscan' ],
     }
 )
 

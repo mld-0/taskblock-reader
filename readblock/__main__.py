@@ -52,22 +52,29 @@ def _DirPath(string):
     else:
         raise NotADirectoryError(string)
 
-def _GetFilesList_Monthly(arg_dir, arg_prefix, arg_postfix, arg_extension):
+def _GetFilesList_Monthly(arg_dir, arg_prefix, arg_postfix):
     regex_str_monthly = "[0-9][0-9][0-9][0-9]-[0-9][0-9]"
     glob_filename_str = ""
     if (arg_prefix is not None):
         glob_filename_str += arg_prefix
-    glob_filename_str += regex_str_monthly + "[-\._]"
+    glob_filename_str += regex_str_monthly 
     if (arg_postfix is not None):
         glob_filename_str += arg_postfix
-    if (arg_extension is not None):
-        glob_filename_str += "." + arg_extension
+    #if (arg_extension is not None):
+    #    glob_filename_str += "." + arg_extension
+    if (arg_dir is None):
+        _log.error("need -D DIR plus --prefix PREFIX or --postfix POSTFIX")
+        sys.exit(2)
+    if (arg_prefix is None and arg_postfix is None):
+        _log.error("need -D DIR plus --prefix PREFIX or --postfix POSTFIX")
+        sys.exit(2)
     _log.debug("arg_dir=(%s)" % str(arg_dir))
     _log.debug("glob_filename_str=(%s)" % str(glob_filename_str))
     glob_filepath_str = os.path.join(arg_dir, glob_filename_str)
-    #_log.debug("glob_filepath_str=(%s)" % str(glob_filepath_str))
+    _log.debug("glob_filepath_str=(%s)" % str(glob_filepath_str))
     results_list = glob.glob(glob_filepath_str)
-    results_list.sort(reverse=True)
+    #results_list.sort(reverse=True)
+    results_list.sort()
     _log.debug("results_list:\n%s" % pprint.pformat(results_list))
     return results_list
 
@@ -81,9 +88,11 @@ _parser.add_argument('-v', '--debug', action='store_true', default=False)
 _parser.add_argument('-D', '--dir', type=_DirPath, help="Path to dir containing tasklogs")
 _parser.add_argument('--prefix', type=str, default=None, help="Tasklog filename before Y-m")
 _parser.add_argument('--postfix', '-P', type=str, default=None, help="Tasklog filename after Y-m")
-_parser.add_argument('--extension', type=str, default="vimgpg", help="Tasklog filename extension")
+#_parser.add_argument('--extension', type=str, default="vimgpg", help="Tasklog filename extension")
 
 _subparser_readlabels = _subparser.add_parser('labels')
+_subparser_readlabels = _subparser.add_parser('startendtime')
+_subparser_readlabels = _subparser.add_parser('quality')
 
 
 #_parser.add_argument('-i', '--infile', nargs='?', help="Input to search", type=argparse.FileType('r'))
@@ -105,10 +114,12 @@ def cliscan():
 
     regex_search = re.compile(regex_str, re.MULTILINE)
     _args = _parser.parse_args()
+
+
     readblock._printdebug = _args.debug
     #_log.debug("args=(%s)" % str(_args))
 
-    tasklogs_list = _GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix, _args.extension)
+    tasklogs_list = _GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
 
     #print(type(_args.subparsers))
     
@@ -121,8 +132,42 @@ def cliscan():
             loop_tasklog_stream = open(loop_tasklog, "r")
 
         if (_args.subparsers == 'labels'):
-            _result = readblock.ScanStreamRegex(loop_tasklog_stream, regex_search)
-            print(_result)
+            _results = readblock.ScanStreamRegex(loop_tasklog_stream, regex_search)
+            #print(_result)
+            #pprint.pprint(_result)
+            print("%s" % str(loop_tasklog))
+            for loop_result_dict in _results:
+                #print(loop_result_dict)
+                for k, v in loop_result_dict.items():
+                    print("%s: %s" % (str(k), str(v)))
+
+        if (_args.subparsers == 'startendtime'):
+            _results = readblock.ScanStreamRegex(loop_tasklog_stream, regex_search)
+            _OFS = "\t"
+            #print(_result)
+            #pprint.pprint(_result)
+            for loop_result_dict in _results:
+                #print(loop_result_dict)
+                #for k, v in loop_result_dict.items():
+                #    print("(%s)=(%s)" % (str(k), str(v)))
+                try:
+                    print("%s\t%s" % (loop_result_dict['starttime'], loop_result_dict['timedone']))
+                except Exception as e:
+                    pass
+
+        if (_args.subparsers == 'quality'):
+            _results = readblock.ScanStreamRegex(loop_tasklog_stream, regex_search)
+            _OFS = "\t"
+            #print(_result)
+            #pprint.pprint(_result)
+            for loop_result_dict in _results:
+                #print(loop_result_dict)
+                #for k, v in loop_result_dict.items():
+                #    print("(%s)=(%s)" % (str(k), str(v)))
+                try:
+                    print("%s\t%s\t%s\t%s" % (loop_result_dict['starttime'], loop_result_dict['timedone'], loop_result_dict['elapsed'], loop_result_dict['quality']))
+                except Exception as e:
+                    pass
 
 
     #if (args.infile):

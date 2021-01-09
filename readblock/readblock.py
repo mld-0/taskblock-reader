@@ -124,32 +124,37 @@ class ReadBlock(object):
         return tasklog_list
 
     def ReadSearchStr(self, arg_search_str, regex_search):
-        results_list = []
+        #results_list = []
+        results_dict = dict()
 
         search_regex = [ r"^[ \t]*ITEM:[ \t]*(?P<item>.+?)$", r"^[ \t]*Start-Time:[ \t]+(?P<starttime>.+?)$", r"^[ \t]*TimeQuality:[ \t]*(?P<quality>.+?)$", r"^[ \t]*Time-Done:[ \t]*(?P<timedone>.+?)$", r"^[ \t]*Block-Elapsed:[ \t]*(?P<elapsed>.+?)$" ]
 
+        result_dict_list = []
         for loop_regex in search_regex:
             _result = re.search(loop_regex, arg_search_str, re.MULTILINE)
-            _log.debug("_result=(%s)" % str(_result))
+            #_log.debug("_result=(%s)" % str(_result))
 
+            _result_dict = None
             try:
                 _result_dict = _result.groupdict()
                 for k, v in _result_dict.items():
                     _log.debug("k=(%s), v=(%s)" % (str(k), str(v)))
+                    results_dict[k] = v
                 #_log.debug("_result_dict=(%s)" % str(_result_dict))
             except Exception as e:
                 pass
 
-            results_list.append(_result)
+            #results_list.append(_result_dict)
 
 
         #_log.debug("arg_search_str=(%s)" % str(arg_search_str))
         #results_list = regex_search.findall(arg_search_str)
 
-        _log.debug("len(results_list)=(%i)" % len(results_list))
+        #_log.debug("len(results_list)=(%i)" % len(results_list))
 
-        return results_list
+        #return results_list
         #return None
+        return results_dict
 
     def ScanStreamRegex(self, input_stream, regex_search):
         matches_count=0
@@ -185,7 +190,12 @@ class ReadBlock(object):
                 elif (len(search_str) > 0):
                     search_str += loop_line
 
-        _log.debug("len(search_str_list)=(%s)" % len(search_str_list))
+        #_log.debug("len(search_str_list)=(%s)" % len(search_str_list))
+        _log.debug("len(results_list)=(%s)" % len(results_list))
+        #_log.debug("search_str_list=(%s)" % str(search_str_list))
+        #_log.debug("results_list=(%s)" % str(results_list))
+
+        return results_list
 
         #_log.debug("search_str_list=(%s)" % search_str_list)
         #results_list = regex_search.findall(search_str, re.DOTALL)
