@@ -32,10 +32,9 @@ flag_exit_on_tty_input = True
 _logging_format="%(funcName)s:%(levelname)s: %(message)s"
 _logging_datetime="%Y-%m-%dT%H:%M:%S%Z"
 _log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG, format=_logging_format, datefmt=_logging_datetime)
+logging.basicConfig(level=logging.WARNING, format=_logging_format, datefmt=_logging_datetime)
 
 class ReadBlock(object):
-    _printdebug = False
 
     #   About: Take a filepath as a string, decrypt said file using the system gpg keychain, and return the contents as a string
     def _ReadGPGFile_ToString(self, file_path):
@@ -56,9 +55,8 @@ class ReadBlock(object):
         #   error/warning if empty:
         #   {{{
         result_str_len = len(result_str)
-        if (self._printdebug):
-            _log.debug("len(result_str)=(%s)" % str(result_str_len))
-            _log.debug("lines(result_str)=(%s)" % str(len(result_str.split("\n"))))
+        _log.debug("len(result_str)=(%s)" % str(result_str_len))
+        _log.debug("lines(result_str)=(%s)" % str(len(result_str.split("\n"))))
         if (result_str_len == 0) and (flag_exit_on_empty_gpgin == True):
             raise Exception("gpg decrypt result_str empty")
         elif (result_str_len == 0):
@@ -91,15 +89,12 @@ class ReadBlock(object):
             raise Exception("gpg decrypt rc=(%s)" % str(rc))
         #   printdebug:
         #   {{{
-        if (self._printdebug == 1):
-            _log.debug("result_strerr=(%s)" % str(result_stderr))
-            _log.debug("result_strerr=(%s)" % str(result_str))
+        _log.debug("result_strerr=(%s)" % str(result_stderr))
         #   }}}
         #   error/warning if empty:
         #   {{{
         result_str_len = len(result_str)
-        if (self._printdebug == 1):
-            _log.debug("result_str_len=(%s)" % str(result_str_len))
+        _log.debug("result_str_len=(%s)" % str(result_str_len))
         if (result_str_len == 0) and (flag_exit_on_empty_gpgin == True):
             raise Exception("gpg decrypt result_str empty")
         elif (result_str_len == 0):
@@ -112,101 +107,93 @@ class ReadBlock(object):
     def DecryptGPG2Stream(self, arg_infile):
     #   {{{
         input_text = "" 
-        if (self._printdebug):
-            _log.debug("arg_infile=(%s)" % str(arg_infile))
+        _log.debug("arg_infile=(%s)" % str(arg_infile))
         input_text = self._ReadGPGFile_ToString(arg_infile)
         return io.StringIO(input_text)
         #   }}}
 #   }}}
 
-    def GetAllTasklogsInDir(self, arg_dir, arg_name):
-        tasklog_list = glob.glob(arg_dir  + "[0-9][0-9][0-9][0-9]-[0-9][0-9]." + arg_name + ".vimgpg" )
-        return tasklog_list
+    #def GetAllTasklogsInDir(self, arg_dir, arg_name_postfix):
+    #    _filename = "[0-9][0-9][0-9][0-9]-[0-9][0-9]" + arg_name_postfix 
+    #    tasklog_list = glob.glob(os.path.join(arg_dir, _filename))
+    #    return tasklog_list
 
-    def ReadSearchStr(self, arg_search_str, regex_search):
-        #results_list = []
+    def SearchStreamMultiLine(self, input_stream, regex_search_labels_list):
+        pass
+
+    def SearchStreamLineByLine(self, input_stream, regex_search_labels_list):
+        results_list = []
+        for loop_line in input_stream:
+            results_dict = dict()
+            for loop_regex in regex_search_labels_list:
+                _result = re.search(loop_regex, loop_line)
+                try:
+                    loop_dict = _result.groupdict()
+                    for k, v in loop_dict.items():
+                        #_log.debug("k=(%s), v=(%s)" % (str(k), str(v)))
+                        results_dict[k] = v
+                    #_log.debug("loop_dict=(%s)" % str(loop_dict))
+                except Exception as e:
+                    pass
+            #_log.debug("len(results_dict=(%s)" % len(results_dict))
+            if (len(results_dict) > 0):
+                results_list.append(results_dict)
+        return results_list
+
+    def SearchTaskblock(self, arg_taskblock_str, regex_search_labels_list):
+        """Given a taskblock as string, and list of regex-as-strings, return dict of search results for results from named capture groups"""
         results_dict = dict()
-
-        search_regex = [ r"^[ \t]*ITEM:[ \t]*(?P<item>.+?)$", r"^[ \t]*Start-Time:[ \t]+(?P<starttime>.+?)$", r"^[ \t]*TimeQuality:[ \t]*(?P<quality>.+?)$", r"^[ \t]*Time-Done:[ \t]*(?P<timedone>.+?)$", r"^[ \t]*Block-Elapsed:[ \t]*(?P<elapsed>.+?)$" ]
-
-        result_dict_list = []
-        for loop_regex in search_regex:
-            _result = re.search(loop_regex, arg_search_str, re.MULTILINE)
+        for loop_regex in regex_search_labels_list:
+            _result = re.search(loop_regex, arg_taskblock_str, re.MULTILINE)
             #_log.debug("_result=(%s)" % str(_result))
-
-            _result_dict = None
             try:
-                _result_dict = _result.groupdict()
-                for k, v in _result_dict.items():
-                    _log.debug("k=(%s), v=(%s)" % (str(k), str(v)))
+                loop_dict = _result.groupdict()
+                for k, v in loop_dict.items():
+                    #_log.debug("k=(%s), v=(%s)" % (str(k), str(v)))
                     results_dict[k] = v
-                #_log.debug("_result_dict=(%s)" % str(_result_dict))
+                #_log.debug("loop_dict=(%s)" % str(loop_dict))
             except Exception as e:
                 pass
+        #_log.debug("len(results_dict=(%s)" % len(results_dict))
+        if (len(results_dict) > 0):
+            return results_dict
+        else:
+            return None
 
-            #results_list.append(_result_dict)
-
-
-        #_log.debug("arg_search_str=(%s)" % str(arg_search_str))
-        #results_list = regex_search.findall(arg_search_str)
-
-        #_log.debug("len(results_list)=(%i)" % len(results_list))
-
-        #return results_list
-        #return None
-        return results_dict
-
-    def ScanStreamRegex(self, input_stream, regex_search):
-        matches_count=0
-        input_text = ""
-        #   Examining file for multi-line regex -> do we need file (as string) in memory?
-
+    def ScanTaskblocksInStream(self, input_stream, regex_search_labels_list, regex_lines_beginStartEnd_list):
+        """Identify blocks of text in file, beginning after regex_lines_beginStartEnd_list[0], which fall between elements [1]/[2] of the same list respectively, for each, call SearchTaskblock, and append results to results_list"""
         results_list = []
-        search_str_list = []
-        search_str = ""
+        #taskblock_str_list = []
+        taskblock_str = ""
         flag_found_begin = False
-        regex_line_begin = r"^[ \t]*#------CurrentPrevious-FoldMarker-CURRENT--{{{1"
-        regex_line_start = r"^[ \t]*ITEM:"
-        regex_line_end = r"^[ \t]*Block-Elapsed:"
+
+        regex_line_begin = regex_lines_beginStartEnd_list[0]
+        regex_line_start = regex_lines_beginStartEnd_list[1]
+        regex_line_end = regex_lines_beginStartEnd_list[2]
 
         for loop_line in input_stream:
-            if re.match(regex_line_begin, loop_line):
+            if not (flag_found_begin) and re.match(regex_line_begin, loop_line):
                 flag_found_begin = True
 
             if (flag_found_begin):
                 if re.match(regex_line_end, loop_line):
-                    search_str += loop_line
+                    taskblock_str += loop_line
 
-                    _result = self.ReadSearchStr(search_str, regex_search)
-                    results_list.append(_result)
-                    search_str_list.append(search_str)
-
-                    search_str = ""
+                    _result = self.SearchTaskblock(taskblock_str, regex_search_labels_list)
+                    if (_result is not None):
+                        results_list.append(_result)
+                    #taskblock_str_list.append(taskblock_str)
+                    taskblock_str = ""
                 elif re.match(regex_line_start, loop_line):
-                    if (len(search_str) > 0):
-                        search_str_list.append(search_str)
-                        search_str = ""
-                    search_str += loop_line
-                elif (len(search_str) > 0):
-                    search_str += loop_line
+                    if (len(taskblock_str) > 0):
+                        #taskblock_str_list.append(taskblock_str)
+                        taskblock_str = ""
+                    taskblock_str += loop_line
+                elif (len(taskblock_str) > 0):
+                    taskblock_str += loop_line
 
-        #_log.debug("len(search_str_list)=(%s)" % len(search_str_list))
         _log.debug("len(results_list)=(%s)" % len(results_list))
-        #_log.debug("search_str_list=(%s)" % str(search_str_list))
-        #_log.debug("results_list=(%s)" % str(results_list))
-
         return results_list
-
-        #_log.debug("search_str_list=(%s)" % search_str_list)
-        #results_list = regex_search.findall(search_str, re.DOTALL)
-        #_log.debug("len(results_list)=(%s)" % str(len(results_list)))
-        #for loop_match in results_list:
-        #    #_log.debug("loop_match=(%s)" % str(loop_match))
-        #    #loop_dict = loop_match.groupdict()
-        #    matches_count += 1
-        #    #for k, v in loop_dict.items():
-        #    #    _log.debug("(%s)=(%s)" % (k, v.strip()))
-        #_log.debug("matches_count=(%s)" % str(matches_count))
 
 #   }}}1
 

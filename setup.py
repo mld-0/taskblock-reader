@@ -50,7 +50,7 @@ setup(
     packages = ['readblock', 'tests'],
     tests_require=test_depend,
     entry_points={
-        'console_scripts': [ 'readblock= readblock.__main__:cliscan' ],
+        'console_scripts': [ 'readtaskblocks= readblock.__main__:cliscan' ],
     }
 )
 
