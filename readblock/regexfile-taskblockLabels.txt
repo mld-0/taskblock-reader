@@ -1,0 +1,5 @@
+^[ \t]*ITEM:[ \t]*(?P<item>.+?)$
+^[ \t]*Start-Time:[ \t]+(?P<starttime>.+?)$
+^[ \t]*TimeQuality:[ \t]*(?P<quality>.+?)$
+^[ \t]*Time-Done:[ \t]*(?P<timedone>.+?)$
+^[ \t]*Block-Elapsed:[ \t]*(?P<elapsed>.+?)$

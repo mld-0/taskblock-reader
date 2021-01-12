@@ -1,0 +1,3 @@
+^[ \t]*#------CurrentPrevious-FoldMarker-CURRENT--{{{[0-9]
+^[ \t]*ITEM:
+^[ \t]*Block-Elapsed:
