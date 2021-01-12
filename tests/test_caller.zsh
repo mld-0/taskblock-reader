@@ -9,3 +9,6 @@ readtaskblocks -D "$mld_tasklogs/_worklog" --postfix ".worklog.vimgpg" labels #2
 #	read and output all 'Continue' grab items
 readtaskblocks -D "$mld_tasklogs/_worklog" --postfix ".worklog.vimgpg" grabitems -L "Continue"
 
+#	read and output all 'Today-Tasks' items
+readtaskblocks -D "$mld_tasklogs/_worklog" --postfix ".worklog.vimgpg" todaytasks
+

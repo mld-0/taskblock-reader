@@ -99,6 +99,8 @@ _subparser_grabitems = _subparser.add_parser('grabitems', help="Print grab items
 _subparser_grabitems.add_argument('-L', '--label', action='append', type=str, default=None, help="Search given label (otherwise use all defaults)")
 _subparser_grabitems.add_argument('-n', '--nokeys', action='store_true', default=False, help="Do not include grab label with result")
 
+_subparser_todaytasks = _subparser.add_parser('todaytasks', help="Get non-empty lines immediately after today-tasks")
+
 readblock = ReadBlock()
 input_gpgin = True
 
@@ -161,7 +163,7 @@ def cliscan():
 
     tasklog_files_list = _GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
 
-    #   For each file found
+    #   TODO: 2021-01-12T19:22:08AEDT function for each subparser
     for loop_tasklog in tasklog_files_list:
         #   Decrypt to stream, or open as stream (decrypted streams are stored in memory)
         if (input_gpgin):
@@ -208,7 +210,6 @@ def cliscan():
                     _grab_labels.append(loop_grablabel)
                 _log.debug("_grab_labels=(%s)" % str(_grab_labels))
                 _results = readblock.SearchStreamLineByLine(loop_tasklog_stream, _grab_labels)
-
             for loop_result_dict in _results:
                 #print(loop_result_dict)
                 for k, v in loop_result_dict.items():
@@ -216,6 +217,16 @@ def cliscan():
                         print(str(v))
                     else:
                         print("%s: %s" % (str(k), str(v)))
+
+        if (_args.subparsers == 'todaytasks'):
+            _regex_startday = r"^======== StartDay:"
+            _regex_todaytasks = [ r"(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})", r"(?P<todaytasks>Today-Tasks:\s*\n(.*\n)+)" ]
+            _results = readblock.ScanGetNonEmptyLineRange(loop_tasklog_stream, _regex_startday, _regex_todaytasks, regex_lines_beginStartEnd_list)
+            for loop_result_dict in _results:
+                try:
+                    print("%s\t%s" % (loop_result_dict['date'], loop_result_dict['todaytasks']))
+                except Exception as e:
+                    pass
 
         loop_tasklog_stream.close()
 
