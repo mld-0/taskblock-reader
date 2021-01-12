@@ -226,7 +226,7 @@ def _GetFilesList_Monthly(arg_dir, arg_prefix, arg_postfix):
     glob_filepath_str = os.path.join(arg_dir, glob_filename_str)
     _log.debug("glob_filepath_str=(%s)" % str(glob_filepath_str))
     results_list = glob.glob(glob_filepath_str)
-    results_list.sort()
+    results_list.sort(reverse=True)
     _log.debug("results_list:\n%s" % pprint.pformat(results_list))
     return results_list
 #   }}}
@@ -304,11 +304,11 @@ def cliscan():
             loop_tasklog_basename = os.path.basename(loop_tasklog)
             print("file=(%s)" % str(loop_tasklog_basename))
 
-        #if (_args.subparsers == 'labels'):
-        #    _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
-        #    for loop_result_dict in _results:
-        #        for k, v in loop_result_dict.items():
-        #            print("%s: %s" % (str(k), str(v)))
+        if (_args.subparsers == 'labels'):
+            _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
+            for loop_result_dict in _results:
+                for k, v in loop_result_dict.items():
+                    print("%s: %s" % (str(k), str(v)))
 
         if (_args.subparsers == 'startendtime'):
             _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)

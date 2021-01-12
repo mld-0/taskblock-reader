@@ -30,3 +30,6 @@ for loop_label in "${_grablabels[@]}"; do
 done
 
 
+echoerr "todaytasks"
+readtaskblocks -D "$_dir_worklog" --postfix ".worklog.vimgpg" todaytasks > "$_dir_output/today-tasks.txt"
+
