@@ -32,6 +32,9 @@ __version__ = "0.0.0"
 _parser = argparse.ArgumentParser(description="Read taskblocks for tasklogs in given dir, output chosen items", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 _subparser = _parser.add_subparsers(dest="subparsers")
 
+readblock = ReadBlock()
+input_gpgin = True
+
 def Read_Resources():
     resource_regexfile_taskblocklabels = [ "readblock", "regexfile-taskblockLabels.txt" ]
     resource_regexfile_beginStartEnd = [ "readblock", "regexfile-beginStartEnd.txt" ]
@@ -82,117 +85,137 @@ def Read_Resources():
 
 
 
-#def _Interface_labels(_args):
-#    regex_search_labels_list, regex_lines_beginStartEnd_list, _grab_labels_default = Read_Resources()
-#    tasklog_files_list = _GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
-#    for loop_tasklog in tasklog_files_list:
-#        if (input_gpgin):
-#            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog)
-#        else:
-#            loop_tasklog_stream = open(loop_tasklog, "r")
-#        if (_args.filenames):
-#            loop_tasklog_basename = os.path.basename(loop_tasklog)
-#            print("file=(%s)" % str(loop_tasklog_basename))
-#        _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
-#        for loop_result_dict in _results:
-#            for k, v in loop_result_dict.items():
-#                print("%s: %s" % (str(k), str(v)))
-#        loop_tasklog_stream.close()
-#
-#def _Interface_startEndTime(_args):
-#    regex_search_labels_list, regex_lines_beginStartEnd_list, _grab_labels_default = Read_Resources()
-#    tasklog_files_list = _GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
-#    for loop_tasklog in tasklog_files_list:
-#        if (input_gpgin):
-#            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog)
-#        else:
-#            loop_tasklog_stream = open(loop_tasklog, "r")
-#        if (_args.filenames):
-#            loop_tasklog_basename = os.path.basename(loop_tasklog)
-#            print("file=(%s)" % str(loop_tasklog_basename))
-#        _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
-#        for loop_result_dict in _results:
-#            try:
-#                print("%s\t%s" % (loop_result_dict['starttime'], loop_result_dict['timedone']))
-#            except Exception as e:
-#                pass
-#        loop_tasklog_stream.close()
-#
-#def _Interface_quality(_args):
-#    regex_search_labels_list, regex_lines_beginStartEnd_list, _grab_labels_default = Read_Resources()
-#    tasklog_files_list = _GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
-#    for loop_tasklog in tasklog_files_list:
-#        if (input_gpgin):
-#            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog)
-#        else:
-#            loop_tasklog_stream = open(loop_tasklog, "r")
-#        if (_args.filenames):
-#            loop_tasklog_basename = os.path.basename(loop_tasklog)
-#            print("file=(%s)" % str(loop_tasklog_basename))
-#
-#        _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
-#        for loop_result_dict in _results:
-#            try:
-#                print("%s\t%s\t%s\t%s" % (loop_result_dict['starttime'], loop_result_dict['timedone'], loop_result_dict['elapsed'], loop_result_dict['quality']))
-#            except Exception as e:
-#                pass
-#        loop_tasklog_stream.close()
-#
-#def _Interface_grabitems(_args):
-#    regex_search_labels_list, regex_lines_beginStartEnd_list, _grab_labels_default = Read_Resources()
-#    tasklog_files_list = _GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
-#    for loop_tasklog in tasklog_files_list:
-#        if (input_gpgin):
-#            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog)
-#        else:
-#            loop_tasklog_stream = open(loop_tasklog, "r")
-#        if (_args.filenames):
-#            loop_tasklog_basename = os.path.basename(loop_tasklog)
-#            print("file=(%s)" % str(loop_tasklog_basename))
-#
-#        #_log.debug("_grab_labels=(%s)" % str(_grab_labels))
-#        _results = None
-#        if (_args.label is None):
-#            _results = readblock.SearchStreamLineByLine(loop_tasklog_stream, _grab_labels_default)
-#        else:
-#            _grab_labels = []
-#            _log.debug("_args.label=(%s)" % str(_args.label))
-#            for loop_label in _args.label:
-#                loop_grablabel = CombineGrabLabelRegex(loop_label)
-#                _grab_labels.append(loop_grablabel)
-#            _log.debug("_grab_labels=(%s)" % str(_grab_labels))
-#
-#            _results = readblock.SearchStreamLineByLine(loop_tasklog_stream, _grab_labels)
-#        for loop_result_dict in _results:
-#            #print(loop_result_dict)
-#            for k, v in loop_result_dict.items():
-#                if (_args.nokeys):
-#                    print(str(v))
-#                else:
-#                    print("%s: %s" % (str(k), str(v)))
-#        loop_tasklog_stream.close()
-#
-#def _Interface_todaytasks(_args):
-#    regex_search_labels_list, regex_lines_beginStartEnd_list, _grab_labels_default = Read_Resources()
-#    tasklog_files_list = _GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
-#    for loop_tasklog in tasklog_files_list:
-#        if (input_gpgin):
-#            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog)
-#        else:
-#            loop_tasklog_stream = open(loop_tasklog, "r")
-#        if (_args.filenames):
-#            loop_tasklog_basename = os.path.basename(loop_tasklog)
-#            print("file=(%s)" % str(loop_tasklog_basename))
-#        _regex_startday = r"^======== StartDay:"
-#        _regex_todaytasks = [ r"(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})", r"(?P<todaytasks>Today-Tasks:\s*\n(.*\n)+)" ]
-#
-#        _results = readblock.ScanGetNonEmptyLineRange(loop_tasklog_stream, _regex_startday, _regex_todaytasks, regex_lines_beginStartEnd_list)
-#        for loop_result_dict in _results:
-#            try:
-#                print("%s\t%s" % (loop_result_dict['date'], loop_result_dict['todaytasks']))
-#            except Exception as e:
-#                pass
-#        loop_tasklog_stream.close()
+def _Interface_labels(_args):
+#   {{{
+    #results_list = SearchTasklogs_labels(_args.dir, _args.prefix, _args.postfix)
+    results_list = SearchTasklogs_DefaultSearchLabels(_args.dir, _args.prefix, _args.postfix)
+    for _results in results_list:
+        if (_args.filenames):
+            pass
+        for loop_result_dict in _results:
+            for k, v in loop_result_dict.items():
+                print("%s: %s" % (str(k), str(v)))
+#   }}}
+
+def _Interface_startEndTime(_args):
+#   {{{
+    #results_list = SearchTasklogs_startEndTime(_args.dir, _args.prefix, _args.postfix)
+    results_list = SearchTasklogs_DefaultSearchLabels(_args.dir, _args.prefix, _args.postfix)
+    for _results in results_list:
+        if (_args.filenames):
+            pass
+        for loop_result_dict in _results:
+            try:
+                #   print either if '--both' is not given, or if both starttime and endtime are non-empty
+                if not (_args.both) or (len(loop_result_dict['starttime'].strip()) > 0 and  len(loop_result_dict['timedone'].strip()) > 0):
+                    print("%s\t%s" % (loop_result_dict['starttime'], loop_result_dict['timedone']))
+            except Exception as e:
+                pass
+#   }}}
+
+def _Interface_quality(_args):
+#   {{{
+    results_list = SearchTasklogs_DefaultSearchLabels(_args.dir, _args.prefix, _args.postfix)
+    for _results in results_list:
+        if (_args.filenames):
+            pass
+        for loop_result_dict in _results:
+            try:
+                print("%s\t%s\t%s\t%s" % (loop_result_dict['starttime'], loop_result_dict['timedone'], loop_result_dict['elapsed'], loop_result_dict['quality']))
+            except Exception as e:
+                pass
+#   }}}
+
+def _Interface_grabitems(_args):
+#   {{{
+    results_list = SearchTasklogs_grabitems(_args.dir, _args.prefix, _args.postfix, _args.label)
+    for _results in results_list:
+        if (_args.filenames):
+            pass
+        for loop_result_dict in _results:
+            #print(loop_result_dict)
+            for k, v in loop_result_dict.items():
+                if (_args.nokeys):
+                    print(str(v))
+                else:
+                    print("%s: %s" % (str(k), str(v)))
+#   }}}
+
+def _Interface_todaytasks(_args):
+#   {{{
+    results_list = SearchTasklogs_todaytasks(_args.dir, _args.prefix, _args.postfix)
+    for _results in results_list:
+        if (_args.filenames):
+            pass
+        for loop_result_dict in _results:
+            try:
+                print("%s\t%s" % (loop_result_dict['date'], loop_result_dict['todaytasks']))
+            except Exception as e:
+                pass
+#   }}}
+
+def SearchTasklogs_DefaultSearchLabels(arg_dir, arg_prefix, arg_postfix):
+#   {{{
+    regex_search_labels_list, regex_lines_beginStartEnd_list, _grab_labels_default = Read_Resources()
+    tasklog_files_list = _GetFilesList_Monthly(arg_dir, arg_prefix, arg_postfix)
+    results_list = []
+    for loop_tasklog in tasklog_files_list:
+        if (input_gpgin):
+            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog)
+        else:
+            loop_tasklog_stream = open(loop_tasklog, "r")
+        _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
+        results_list.append(_results)
+        loop_tasklog_stream.close()
+    return results_list
+#   }}}
+
+def SearchTasklogs_grabitems(arg_dir, arg_prefix, arg_postfix, arg_label):
+#   {{{
+    regex_search_labels_list, regex_lines_beginStartEnd_list, _grab_labels_default = Read_Resources()
+    tasklog_files_list = _GetFilesList_Monthly(arg_dir, arg_prefix, arg_postfix)
+    results_list = []
+    for loop_tasklog in tasklog_files_list:
+        if (input_gpgin):
+            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog)
+        else:
+            loop_tasklog_stream = open(loop_tasklog, "r")
+        #_log.debug("_grab_labels=(%s)" % str(_grab_labels))
+        _results = None
+        if (arg_label is None):
+            _results = readblock.SearchStreamLineByLine(loop_tasklog_stream, _grab_labels_default)
+            results_list.append(_results)
+        else:
+            _grab_labels = []
+            _log.debug("arg_label=(%s)" % str(arg_label))
+            for loop_label in arg_label:
+                loop_grablabel = CombineGrabLabelRegex(loop_label)
+                _grab_labels.append(loop_grablabel)
+            _log.debug("_grab_labels=(%s)" % str(_grab_labels))
+            _results = readblock.SearchStreamLineByLine(loop_tasklog_stream, _grab_labels)
+            results_list.append(_results)
+        loop_tasklog_stream.close()
+    return results_list
+#   }}}
+
+def SearchTasklogs_todaytasks(arg_dir, arg_prefix, arg_postfix):
+#   {{{
+    regex_search_labels_list, regex_lines_beginStartEnd_list, _grab_labels_default = Read_Resources()
+    tasklog_files_list = _GetFilesList_Monthly(arg_dir, arg_prefix, arg_postfix)
+    results_list = []
+    filenames_list = []
+    for loop_tasklog in tasklog_files_list:
+        if (input_gpgin):
+            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog)
+        else:
+            loop_tasklog_stream = open(loop_tasklog, "r")
+        _regex_startday = r"^======== StartDay:"
+        _regex_todaytasks = [ r"(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})", r"(?P<todaytasks>Today-Tasks:\s*\n(.*\n)+)" ]
+        _results = readblock.ScanGetNonEmptyLineRange(loop_tasklog_stream, _regex_startday, _regex_todaytasks, regex_lines_beginStartEnd_list)
+        results_list.append(_results)
+        loop_tasklog_stream.close()
+    return results_list
+#   }}}
 
 def _DirPath(string):
 #   {{{
@@ -254,25 +277,23 @@ _parser.add_argument('--postfix', '-P', type=str, default=None, help="Tasklog fi
 _parser.add_argument('-F', '--filenames', action='store_true', default=False, help="Begin output for each file with file=(<filename>)")
 
 _subparser_readlabels = _subparser.add_parser('labels', help="Print all taskblock label results")
-#_subparser_readlabels.set_defaults(func=_Interface_labels)
+_subparser_readlabels.set_defaults(func=_Interface_labels)
 
 _subparser_startendtime = _subparser.add_parser('startendtime', help="Print start/end time for each taskblock")
-#_subparser_startendtime.set_defaults(func=_Interface_labels)
+_subparser_startendtime.set_defaults(func=_Interface_startEndTime)
+_subparser_startendtime.add_argument('--both', action='store_true', default=False, help="Require both start and end time to print match")
 
 
 _subparser_quality  = _subparser.add_parser('quality', help="Print start/end time, plus elapsed and timequality")
-#_subparser_quality.set_defaults(func=_Interface_quality)
+_subparser_quality.set_defaults(func=_Interface_quality)
 
 _subparser_grabitems = _subparser.add_parser('grabitems', help="Print grab items, i.e: 'TODO: <datetime> <...>'")
-#_subparser_grabitems.set_defaults(func=_Interface_grabitems)
+_subparser_grabitems.set_defaults(func=_Interface_grabitems)
 _subparser_grabitems.add_argument('-L', '--label', action='append', type=str, default=None, help="Search given label (otherwise use all defaults)")
 _subparser_grabitems.add_argument('-n', '--nokeys', action='store_true', default=False, help="Do not include grab label with result")
 
 _subparser_todaytasks = _subparser.add_parser('todaytasks', help="Get non-empty lines immediately after today-tasks")
-#_subparser_todaytasks.set_defaults(func=_Interface_todaytasks)
-
-readblock = ReadBlock()
-input_gpgin = True
+_subparser_todaytasks.set_defaults(func=_Interface_todaytasks)
 
 
 
@@ -288,76 +309,75 @@ def cliscan():
 
     regex_search_labels_list, regex_lines_beginStartEnd_list, _grab_labels_default = Read_Resources()
 
-    #_args.func(_args)
+    if not hasattr(_args, 'func'):
+        raise Exception("No subparser function")
 
-    tasklog_files_list = _GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
+    _args.func(_args)
 
-    #   TODO: 2021-01-12T19:22:08AEDT function for each subparser
-    for loop_tasklog in tasklog_files_list:
-        #   Decrypt to stream, or open as stream (decrypted streams are stored in memory)
-        if (input_gpgin):
-            loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog)
-        else:
-            loop_tasklog_stream = open(loop_tasklog, "r")
+    #tasklog_files_list = _GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
 
-        if (_args.filenames):
-            loop_tasklog_basename = os.path.basename(loop_tasklog)
-            print("file=(%s)" % str(loop_tasklog_basename))
+    ##   TODO: 2021-01-12T19:22:08AEDT function for each subparser
+    ##   {{{
+    #for loop_tasklog in tasklog_files_list:
+    #    #   Decrypt to stream, or open as stream (decrypted streams are stored in memory)
+    #    if (input_gpgin):
+    #        loop_tasklog_stream = readblock.DecryptGPG2Stream(loop_tasklog)
+    #    else:
+    #        loop_tasklog_stream = open(loop_tasklog, "r")
+    #    if (_args.filenames):
+    #        loop_tasklog_basename = os.path.basename(loop_tasklog)
+    #        print("file=(%s)" % str(loop_tasklog_basename))
+    #    if (_args.subparsers == 'labels'):
+    #        _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
+    #        for loop_result_dict in _results:
+    #            for k, v in loop_result_dict.items():
+    #                print("%s: %s" % (str(k), str(v)))
+    #    if (_args.subparsers == 'startendtime'):
+    #        _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
+    #        for loop_result_dict in _results:
+    #            try:
+    #                print("%s\t%s" % (loop_result_dict['starttime'], loop_result_dict['timedone']))
+    #            except Exception as e:
+    #                pass
+    #    if (_args.subparsers == 'quality'):
+    #        _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
+    #        for loop_result_dict in _results:
+    #            try:
+    #                print("%s\t%s\t%s\t%s" % (loop_result_dict['starttime'], loop_result_dict['timedone'], loop_result_dict['elapsed'], loop_result_dict['quality']))
+    #            except Exception as e:
+    #                pass
+    #    if (_args.subparsers == 'grabitems'):
+    #        #_log.debug("_grab_labels=(%s)" % str(_grab_labels))
+    #        _results = None
+    #        if (_args.label is None):
+    #            _results = readblock.SearchStreamLineByLine(loop_tasklog_stream, _grab_labels_default)
+    #        else:
+    #            _grab_labels = []
+    #            _log.debug("_args.label=(%s)" % str(_args.label))
+    #            for loop_label in _args.label:
+    #                loop_grablabel = CombineGrabLabelRegex(loop_label)
+    #                _grab_labels.append(loop_grablabel)
+    #            _log.debug("_grab_labels=(%s)" % str(_grab_labels))
+    #            _results = readblock.SearchStreamLineByLine(loop_tasklog_stream, _grab_labels)
+    #        for loop_result_dict in _results:
+    #            #print(loop_result_dict)
+    #            for k, v in loop_result_dict.items():
+    #                if (_args.nokeys):
+    #                    print(str(v))
+    #                else:
+    #                    print("%s: %s" % (str(k), str(v)))
+    #    if (_args.subparsers == 'todaytasks'):
+    #        _regex_startday = r"^======== StartDay:"
+    #        _regex_todaytasks = [ r"(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})", r"(?P<todaytasks>Today-Tasks:\s*\n(.*\n)+)" ]
+    #        _results = readblock.ScanGetNonEmptyLineRange(loop_tasklog_stream, _regex_startday, _regex_todaytasks, regex_lines_beginStartEnd_list)
+    #        for loop_result_dict in _results:
+    #            try:
+    #                print("%s\t%s" % (loop_result_dict['date'], loop_result_dict['todaytasks']))
+    #            except Exception as e:
+    #                pass
+    ##  }}}
 
-        if (_args.subparsers == 'labels'):
-            _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
-            for loop_result_dict in _results:
-                for k, v in loop_result_dict.items():
-                    print("%s: %s" % (str(k), str(v)))
-
-        if (_args.subparsers == 'startendtime'):
-            _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
-            for loop_result_dict in _results:
-                try:
-                    print("%s\t%s" % (loop_result_dict['starttime'], loop_result_dict['timedone']))
-                except Exception as e:
-                    pass
-
-        if (_args.subparsers == 'quality'):
-            _results = readblock.ScanTaskblocksInStream(loop_tasklog_stream, regex_search_labels_list, regex_lines_beginStartEnd_list)
-            for loop_result_dict in _results:
-                try:
-                    print("%s\t%s\t%s\t%s" % (loop_result_dict['starttime'], loop_result_dict['timedone'], loop_result_dict['elapsed'], loop_result_dict['quality']))
-                except Exception as e:
-                    pass
-
-        if (_args.subparsers == 'grabitems'):
-            #_log.debug("_grab_labels=(%s)" % str(_grab_labels))
-            _results = None
-            if (_args.label is None):
-                _results = readblock.SearchStreamLineByLine(loop_tasklog_stream, _grab_labels_default)
-            else:
-                _grab_labels = []
-                _log.debug("_args.label=(%s)" % str(_args.label))
-                for loop_label in _args.label:
-                    loop_grablabel = CombineGrabLabelRegex(loop_label)
-                    _grab_labels.append(loop_grablabel)
-                _log.debug("_grab_labels=(%s)" % str(_grab_labels))
-                _results = readblock.SearchStreamLineByLine(loop_tasklog_stream, _grab_labels)
-            for loop_result_dict in _results:
-                #print(loop_result_dict)
-                for k, v in loop_result_dict.items():
-                    if (_args.nokeys):
-                        print(str(v))
-                    else:
-                        print("%s: %s" % (str(k), str(v)))
-
-        if (_args.subparsers == 'todaytasks'):
-            _regex_startday = r"^======== StartDay:"
-            _regex_todaytasks = [ r"(?P<date>[0-9]{4}-[0-9]{2}-[0-9]{2})", r"(?P<todaytasks>Today-Tasks:\s*\n(.*\n)+)" ]
-            _results = readblock.ScanGetNonEmptyLineRange(loop_tasklog_stream, _regex_startday, _regex_todaytasks, regex_lines_beginStartEnd_list)
-            for loop_result_dict in _results:
-                try:
-                    print("%s\t%s" % (loop_result_dict['date'], loop_result_dict['todaytasks']))
-                except Exception as e:
-                    pass
-
-        #loop_tasklog_stream.close()
+    #    #loop_tasklog_stream.close()
 
 #   call cliscan()
 if __name__ == '__main__':
