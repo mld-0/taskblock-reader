@@ -11,7 +11,7 @@ if ! command -v shtab > /dev/null; then
 	echo "error, shtab not found" > /dev/stderr
 	exit 2
 fi
-if ! command -v dtscan > /dev/null; then
+if ! command -v readtaskblocks > /dev/null; then
 	echo "error, dtscan not found" > /dev/stderr
 	exit 2
 fi
@@ -20,14 +20,15 @@ if [[ $SHELL == ".*/zsh" ]]; then
 	exit 2
 fi
 
+_prog_name='readtaskblocks'
 #	zsh site-functions, standard directory for completion scripts
 path_sitefunctions="/usr/local/share/zsh/site-functions"
 
 #	name of file is package name with leading '_' (as per zsh convention)
-name_completefile="_readblock"
+name_completefile="_$_prog_name"
 
 echo "Create file$nl$tab$path_sitefunctions/$name_completefile" > /dev/stderr
-shtab readblock.__main__._parser --shell=zsh > "$path_sitefunctions/$name_completefile" 
+shtab readblock.__main__._parser --shell=zsh --prog="$_prog_name" > "$path_sitefunctions/$name_completefile" 
 
 
 #	}}}1
