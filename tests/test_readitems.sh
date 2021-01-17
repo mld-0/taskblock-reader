@@ -26,10 +26,10 @@ fi
 
 for loop_label in "${_grablabels[@]}"; do
 	echoerr "$loop_label"
-	readtaskblocks -D "$_dir_worklog" --postfix ".worklog.vimgpg" grabitems --nokeys --label "$loop_label" > "$_dir_output/grab-$loop_label.txt"
+	readtaskblocks --gpgin -D "$_dir_worklog" --postfix ".worklog.vimgpg" grabitems --nokeys --label "$loop_label" > "$_dir_output/grab-$loop_label.txt"
 done
 
 
 echoerr "todaytasks"
-readtaskblocks -D "$_dir_worklog" --postfix ".worklog.vimgpg" todaytasks > "$_dir_output/today-tasks.txt"
+readtaskblocks --gpgin -D "$_dir_worklog" --postfix ".worklog.vimgpg" todaytasks > "$_dir_output/today-tasks.txt"
 
