@@ -49,8 +49,6 @@ def _ArgsProcessFileList(_args):
 
 def _Interface_labels(_args):
 #   {{{
-    #_log.debug("args.infile=(%s)" % str(_args.infile))
-    #tasklog_files_list = readblock._GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
     tasklog_files_list = _ArgsProcessFileList(_args)
     results_list = readblock.SearchTasklogs_DefaultSearchLabels(tasklog_files_list)
     for _results in results_list:
@@ -63,8 +61,6 @@ def _Interface_labels(_args):
 
 def _Interface_startEndTime(_args):
 #   {{{
-    #_log.debug("args.infile=(%s)" % str(_args.infile))
-    #tasklog_files_list = readblock._GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
     tasklog_files_list = _ArgsProcessFileList(_args)
     results_list = readblock.SearchTasklogs_DefaultSearchLabels(tasklog_files_list)
     for _results in results_list:
@@ -81,11 +77,6 @@ def _Interface_startEndTime(_args):
 
 def _Interface_quality(_args):
 #   {{{
-    #_log.debug("args.infile=(%s)" % str(_args.infile))
-    #if (_args.infile is None):
-    #    tasklog_files_list = readblock._GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
-    #else:
-    #    tasklog_files_list = _args.infile
     tasklog_files_list = _ArgsProcessFileList(_args)
     results_list = readblock.SearchTasklogs_DefaultSearchLabels(tasklog_files_list)
     for _results in results_list:
@@ -100,8 +91,6 @@ def _Interface_quality(_args):
 
 def _Interface_grabitems(_args):
 #   {{{
-    #_log.debug("args.infile=(%s)" % str(_args.infile))
-    #tasklog_files_list = readblock._GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
     tasklog_files_list = _ArgsProcessFileList(_args)
     results_list = readblock.SearchTasklogs_grabitems(tasklog_files_list, _args.label)
     for _results in results_list:
@@ -118,8 +107,6 @@ def _Interface_grabitems(_args):
 
 def _Interface_todaytasks(_args):
 #   {{{
-    #_log.debug("args.infile=(%s)" % str(_args.infile))
-    #tasklog_files_list = readblock._GetFilesList_Monthly(_args.dir, _args.prefix, _args.postfix)
     tasklog_files_list = _ArgsProcessFileList(_args)
     results_list = readblock.SearchTasklogs_todaytasks(tasklog_files_list)
     for _results in results_list:
